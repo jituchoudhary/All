@@ -1,0 +1,548 @@
+#bfs code
+
+from collections import defaultdict
+
+
+class Graph:
+    def __init__(self):
+        self.graph = defaultdict(list)
+
+    def add_edge(self, u, v):
+        self.graph[u].append(v)
+        self.graph[v].append(u)
+
+    def bfs(self, start_vertex):
+        visited = set()
+        queue = []
+
+        visited.add(start_vertex)
+        queue.append(start_vertex)
+
+        while queue:
+            vertex = queue.pop(0)
+            print(vertex, end=" ")
+
+            for neighbor in self.graph[vertex]:
+                if neighbor not in visited:
+                    visited.add(neighbor)
+                    queue.append(neighbor)
+
+
+# Create a graph
+graph = Graph()
+
+# Add edges
+graph.add_edge(0, 1)
+graph.add_edge(0, 2)
+graph.add_edge(1, 2)
+graph.add_edge(2, 3)
+graph.add_edge(2, 4)
+graph.add_edge(3, 4)
+graph.add_edge(4, 0)
+
+# Perform BFS starting from vertex 0
+print("BFS Traversal:")
+graph.bfs(0)
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+2
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#dfs code
+ 
+from collections import defaultdict
+
+
+class Graph:
+    def __init__(self):
+        self.graph = defaultdict(list)
+
+    def add_edge(self, u, v):
+        self.graph[u].append(v)
+        self.graph[v].append(u)
+
+    def dfs(self, start_vertex, visited=None):
+        if visited is None:
+            visited = set()
+
+        visited.add(start_vertex)
+        print(start_vertex, end=" ")
+
+        for neighbor in self.graph[start_vertex]:
+            if neighbor not in visited:
+                self.dfs(neighbor, visited)
+
+
+# Create a graph
+graph = Graph()
+
+# Add edges
+graph.add_edge(0, 1)
+graph.add_edge(0, 2)
+graph.add_edge(1, 2)
+graph.add_edge(2, 3)
+graph.add_edge(2, 4)
+graph.add_edge(3, 4)
+graph.add_edge(4, 0)
+
+# Perform DFS starting from vertex 0
+print("DFS Traversal:")
+graph.dfs(0)
+
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#A* alogorithm 
+
+import heapq
+
+class Node:
+    def __init__(self, state, parent=None, g=0, h=0):
+        self.state = state
+        self.parent = parent
+        self.g = g
+        self.h = h
+    
+    def f(self):
+        return self.g + self.h
+    
+    def __lt__(self, other):
+        return self.f() < other.f()
+
+def astar(start_state, goal_state, get_successors, heuristic):
+    open_list = []
+    closed_list = set()
+
+    start_node = Node(start_state)
+    heapq.heappush(open_list, start_node)
+
+    while open_list:
+        current_node = heapq.heappop(open_list)
+        current_state = current_node.state
+
+        if current_state == goal_state:
+            return reconstruct_path(current_node)
+
+        closed_list.add(current_state)
+
+        successors = get_successors(current_state)
+        for successor_state in successors:
+            if successor_state in closed_list:
+                continue
+
+            g = current_node.g + 1
+            h = heuristic(successor_state, goal_state)
+            successor_node = Node(successor_state, current_node, g, h)
+
+            heapq.heappush(open_list, successor_node)
+
+    return None
+
+def reconstruct_path(node):
+    path = []
+    while node:
+        path.append(node.state)
+        node = node.parent
+    return path[::-1]
+
+def get_successors(state):
+    x, y = state
+    successors = []
+    
+    # Move left
+    if x > 0:
+        successors.append((x - 1, y))
+    
+    # Move right
+    if x < 3:
+        successors.append((x + 1, y))
+    
+    # Move up
+    if y > 0:
+        successors.append((x, y - 1))
+    
+    # Move down
+    if y < 3:
+        successors.append((x, y + 1))
+    
+    return successors
+
+def heuristic(state, goal_state):
+    x1, y1 = state
+    x2, y2 = goal_state
+    return abs(x1 - x2) + abs(y1 - y2)
+
+start_state = (0, 0)
+goal_state = (3, 3)
+
+path = astar(start_state, goal_state, get_successors, heuristic)
+print(path)
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+#krushkal algorithm
+
+from collections import defaultdict
+
+# Class to represent a graph
+
+
+class Graph:
+
+	def __init__(self, vertices):
+		self.V = vertices # No. of vertices
+		self.graph = [] # default dictionary
+		# to store graph
+
+	# function to add an edge to graph
+	def addEdge(self, u, v, w):
+		self.graph.append([u, v, w])
+
+	# A utility function to find set of an element i
+	# (uses path compression technique)
+	def find(self, parent, i):
+		if parent[i] == i:
+			return i
+		return self.find(parent, parent[i])
+
+	# A function that does union of two sets of x and y
+	# (uses union by rank)
+	def union(self, parent, rank, x, y):
+		xroot = self.find(parent, x)
+		yroot = self.find(parent, y)
+
+		# Attach smaller rank tree under root of
+		# high rank tree (Union by Rank)
+		if rank[xroot] < rank[yroot]:
+			parent[xroot] = yroot
+		elif rank[xroot] > rank[yroot]:
+			parent[yroot] = xroot
+
+		# If ranks are same, then make one as root
+		# and increment its rank by one
+		else:
+			parent[yroot] = xroot
+			rank[xroot] += 1
+
+	# The main function to construct MST using Kruskal's
+		# algorithm
+	def KruskalMST(self):
+
+		result = [] # This will store the resultant MST
+		
+		# An index variable, used for sorted edges
+		i = 0
+		
+		# An index variable, used for result[]
+		e = 0
+
+		# Step 1: Sort all the edges in
+		# non-decreasing order of their
+		# weight. If we are not allowed to change the
+		# given graph, we can create a copy of graph
+		self.graph = sorted(self.graph,
+							key=lambda item: item[2])
+
+		parent = []
+		rank = []
+
+		# Create V subsets with single elements
+		for node in range(self.V):
+			parent.append(node)
+			rank.append(0)
+
+		# Number of edges to be taken is equal to V-1
+		while e < self.V - 1:
+
+			# Step 2: Pick the smallest edge and increment
+			# the index for next iteration
+			u, v, w = self.graph[i]
+			i = i + 1
+			x = self.find(parent, u)
+			y = self.find(parent, v)
+
+			# If including this edge does't
+			# cause cycle, include it in result
+			# and increment the indexof result
+			# for next edge
+			if x != y:
+				e = e + 1
+				result.append([u, v, w])
+				self.union(parent, rank, x, y)
+			# Else discard the edge
+
+		minimumCost = 0
+		print ("Edges in the constructed MST")
+		for u, v, weight in result:
+			minimumCost += weight
+			print("%d -- %d == %d" % (u, v, weight))
+		print("Minimum Spanning Tree" , minimumCost)
+
+# Driver code
+g = Graph(4)
+g.addEdge(0, 1, 10)
+g.addEdge(0, 2, 6)
+g.addEdge(0, 3, 5)
+g.addEdge(1, 3, 15)
+g.addEdge(2, 3, 4)
+
+# Function call
+g.KruskalMST()
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#prims alogorithm
+import sys # Library for INT_MAX
+
+class Graph():
+
+	def __init__(self, vertices):
+		self.V = vertices
+		self.graph = [[0 for column in range(vertices)]
+					for row in range(vertices)]
+
+	# A utility function to print the constructed MST stored in parent[]
+	def printMST(self, parent):
+		print ("Edge \tWeight")
+		for i in range(1, self.V):
+			print (parent[i], "-", i, "\t", self.graph[i][parent[i]])
+
+	# A utility function to find the vertex with
+	# minimum distance value, from the set of vertices
+	# not yet included in shortest path tree
+	def minKey(self, key, mstSet):
+
+		# Initialize min value
+		min = sys.maxsize
+
+		for v in range(self.V):
+			if key[v] < min and mstSet[v] == False:
+				min = key[v]
+				min_index = v
+
+		return min_index
+
+	# Function to construct and print MST for a graph
+	# represented using adjacency matrix representation
+	def primMST(self):
+
+		# Key values used to pick minimum weight edge in cut
+		key = [sys.maxsize] * self.V
+		parent = [None] * self.V # Array to store constructed MST
+		# Make key 0 so that this vertex is picked as first vertex
+		key[0] = 0
+		mstSet = [False] * self.V
+
+		parent[0] = -1 # First node is always the root of
+
+		for cout in range(self.V):
+
+			# Pick the minimum distance vertex from
+			# the set of vertices not yet processed.
+			# u is always equal to src in first iteration
+			u = self.minKey(key, mstSet)
+
+			# Put the minimum distance vertex in
+			# the shortest path tree
+			mstSet[u] = True
+
+			# Update dist value of the adjacent vertices
+			# of the picked vertex only if the current
+			# distance is greater than new distance and
+			# the vertex in not in the shortest path tree
+			for v in range(self.V):
+
+				# graph[u][v] is non zero only for adjacent vertices of m
+				# mstSet[v] is false for vertices not yet included in MST
+				# Update the key only if graph[u][v] is smaller than key[v]
+				if self.graph[u][v] > 0 and mstSet[v] == False and key[v] > self.graph[u][v]:
+						key[v] = self.graph[u][v]
+						parent[v] = u
+
+		self.printMST(parent)
+
+g = Graph(5)
+g.graph = [ [0, 2, 0, 6, 0],
+			[2, 0, 3, 8, 5],
+			[0, 3, 0, 0, 7],
+			[6, 8, 0, 0, 9],
+			[0, 5, 7, 9, 0]]
+
+g.primMST();
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+#n-queen
+
+# Python program to solve N Queen
+# Problem using backtracking
+
+global N
+N = 4
+
+def printSolution(board):
+	for i in range(N):
+		for j in range(N):
+			print (board[i][j],end=' ')
+		print()
+
+
+# A utility function to check if a queen can
+# be placed on board[row][col]. Note that this
+# function is called when "col" queens are
+# already placed in columns from 0 to col -1.
+# So we need to check only left side for
+# attacking queens
+def isSafe(board, row, col):
+
+	# Check this row on left side
+	for i in range(col):
+		if board[row][i] == 1:
+			return False
+
+	# Check upper diagonal on left side
+	for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+		if board[i][j] == 1:
+			return False
+
+	# Check lower diagonal on left side
+	for i, j in zip(range(row, N, 1), range(col, -1, -1)):
+		if board[i][j] == 1:
+			return False
+
+	return True
+
+def solveNQUtil(board, col):
+	# base case: If all queens are placed
+	# then return true
+	if col >= N:
+		return True
+
+	# Consider this column and try placing
+	# this queen in all rows one by one
+	for i in range(N):
+
+		if isSafe(board, i, col):
+			# Place this queen in board[i][col]
+			board[i][col] = 1
+
+			# recur to place rest of the queens
+			if solveNQUtil(board, col + 1) == True:
+				return True
+
+			# If placing queen in board[i][col
+			# doesn't lead to a solution, then
+			# queen from board[i][col]
+			board[i][col] = 0
+
+	# if the queen can not be placed in any row in
+	# this column col then return false
+	return False
+
+# This function solves the N Queen problem using
+# Backtracking. It mainly uses solveNQUtil() to
+# solve the problem. It returns false if queens
+# cannot be placed, otherwise return true and
+# placement of queens in the form of 1s.
+# note that there may be more than one
+# solutions, this function prints one of the
+# feasible solutions.
+def solveNQ():
+	board = [ [0, 0, 0, 0],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0],
+			[0, 0, 0, 0]
+			]
+
+	if solveNQUtil(board, 0) == False:
+		print ("Solution does not exist")
+		return False
+
+	printSolution(board)
+	return True
+
+# driver program to test above function
+solveNQ()
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+#Graph coloring promblem
+
+# Adjacent Matrix
+G = [[ 0, 1, 1, 0, 1, 0],
+     [ 1, 0, 1, 1, 0, 1],
+     [ 1, 1, 0, 1, 1, 0],
+     [ 0, 1, 1, 0, 0, 1],
+     [ 1, 0, 1, 0, 0, 1],
+     [ 0, 1, 0, 1, 1, 0]]
+
+
+
+# inisiate the name of node.
+node = "abcdef"
+t_={}
+for i in range(len(G)):
+  t_[node[i]] = i
+
+# count degree of all node.
+degree =[]
+for i in range(len(G)):
+  degree.append(sum(G[i]))
+
+# inisiate the posible color
+colorDict = {}
+for i in range(len(G)):
+  colorDict[node[i]]=["Blue","Red","Yellow","Green"]
+
+
+# sort the node depends on the degree
+sortedNode=[]
+indeks = []
+
+# use selection sort
+for i in range(len(degree)):
+  _max = 0
+  j = 0
+  for j in range(len(degree)):
+    if j not in indeks:
+      if degree[j] > _max:
+        _max = degree[j]
+        idx = j
+  indeks.append(idx)
+  sortedNode.append(node[idx])
+
+# The main process
+theSolution={}
+for n in sortedNode:
+  setTheColor = colorDict[n]
+  theSolution[n] = setTheColor[0]
+  adjacentNode = G[t_[n]]
+  for j in range(len(adjacentNode)):
+    if adjacentNode[j]==1 and (setTheColor[0] in colorDict[node[j]]):
+      colorDict[node[j]].remove(setTheColor[0])
+
+
+# Print the solution
+for t,w in sorted(theSolution.items()):
+  print("Node",t," = ",w)
+  
+  
+  -----------------------------------------------------------------------------------------------------------------------------------------------------
+  ------------------------------------------------------------------------------------------------------------------------------------------------------
+  
+  0
+
+
+
